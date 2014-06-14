@@ -20,7 +20,7 @@ with open(filename, "w") as myfile:
 
 appids = sys.argv[2:]
 
-def make_apps(appids): # get a table with the appIDs
+def get_table(appids): # get a table with the appIDs
 	# initialize the table
 	table = [['' for x in xrange(10)] for x in xrange(len(appids)+3)]
 	table[0] = ['',          '',          '',          '',               '',              '',         '**Meta**',  '',             '**Trading**', '**PCGW**']

@@ -1,6 +1,5 @@
 import sys
 import urllib2, json
-import pprint
 
 cc = ['us', 'it', 'uk', 'au']
 currency = {
@@ -74,9 +73,9 @@ def get_table(appids): # get a table with the appIDs
 				appid = sub_appid
 				
 				response = urllib2.urlopen('http://store.steampowered.com/api/appdetails?appids=' + str(appid) + '&cc='+country)
-				data_orig = json.load(response)
+				data_orig_new = json.load(response)
 				
-				data = data_orig[str(appid)]['data']
+				data = data_orig_new[str(appid)]['data']
 			else:
 				data = data_orig[str(appid)]['data']
 				table = app_get_info(table, idx1, country, idx2, appid, data)
@@ -108,7 +107,7 @@ def get_table(appids): # get a table with the appIDs
 				try:
 					pcgw_data = json.load(pcgw_response)
 					if('fullurl' in pcgw_data.get('results', {}).itervalues().next()):
-						table[3 + idx2][9] = '[Yes](' + pcgw_data['results'].itervalues().next()['fullurl'] + ')'
+						table[3 + idx2][9] = '[Yes](' + pcgw_data['results'].itervalues().next()['fullurl'].replace('(', '\(').replace(')', '\)') + ')'
 				except ValueError:
 					table[3 + idx2][9] = 'No'
 	return table

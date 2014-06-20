@@ -1,13 +1,14 @@
 import sys
 import urllib2, json
 
-cc = ['us', 'fr', 'it', 'uk', 'au']
+cc = ['us', 'fr', 'it', 'uk', 'au', 'br']
 currency = {
 	'us': '$',
 	'fr': u"\u20ac",
 	'it': u"\u20ac",
 	'uk': u"\u00A3",
-	'au': '$'
+	'au': '$',
+	'br': 'R$'
 }
 cardcheck = {
 	'id': '29',
@@ -36,21 +37,22 @@ def sub_get_info(table, idx1, country, idx2, subid):
 	sub_appid = subid
 	if(idx1 == 0):
 		if('name' in data):
-			table[3 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/sub/' + str(subid) + '/)'
+			table[2 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/sub/' + str(subid) + '/)'
 		if('price' in data):
 			pricedata = data['price']
-			table[3 + idx2][1] = str(pricedata['discount_percent']) + '%'
+			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 	
 	if('price' in data):
 		pricedata = data['price']
 		if(idx1 < 2):
-			table[3 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
 		elif(idx1 == 2):
-			if((currency[country] + str(float(pricedata['final']) / 100)) != table[3 + idx2][3]):
-				table[3 + idx2][3] = table[3 + idx2][3] + "/" + currency[country] + str(float(pricedata['final']) / 100)
+			if((currency[country] + str(float(pricedata['final']) / 100)) != table[2 + idx2][3]):
+				table[2 + idx2][3] = table[2 + idx2][3] + "/" + currency[country] + str(float(pricedata['final']) / 100)
 		elif(idx1 > 2):
-			table[3 + idx2][2 + (idx1 - 1)] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + (idx1 - 1)] = currency[country] + str(float(pricedata['final']) / 100)
 	
+	# set the appid to the first app in the sub (usually the primary app)
 	if('apps' in data):
 		sub_appid = data['apps'][0]['id']
 	
@@ -59,31 +61,30 @@ def sub_get_info(table, idx1, country, idx2, subid):
 def app_get_info(table, idx1, country, idx2, appid, data):
 	if(idx1 == 0):
 		if('name' in data):
-			table[3 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/app/' + str(appid) + '/)'
+			table[2 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/app/' + str(appid) + '/)'
 		if('price_overview' in data):
 			pricedata = data['price_overview']
-			table[3 + idx2][1] = str(pricedata['discount_percent']) + '%'
+			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 	
 	if('price_overview' in data):
 		pricedata = data['price_overview']
 		if(idx1 < 2):
-			table[3 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
 		# combine EU Tiers 1 and 2 into one cell
 		elif(idx1 == 2):
 			# if the prices in EU Tiers 1 and 2 aren't the same, show Tier 2's price
-			if((currency[country] + str(float(pricedata['final']) / 100)) != table[3 + idx2][3]):
-				table[3 + idx2][3] = table[3 + idx2][3] + "/" + currency[country] + str(float(pricedata['final']) / 100)
+			if((currency[country] + str(float(pricedata['final']) / 100)) != table[2 + idx2][3]):
+				table[2 + idx2][3] = table[2 + idx2][3] + "/" + currency[country] + str(float(pricedata['final']) / 100)
 		elif(idx1 > 2):
-			table[3 + idx2][2 + (idx1 - 1)] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + (idx1 - 1)] = currency[country] + str(float(pricedata['final']) / 100)
 	
 	return table
 
 def get_table(appids): # get a table with the appIDs or subIDs
 	# initialize the table
-	table = [['' for x in xrange(10)] for x in xrange(len(appids)+3)]
-	table[0] = ['',          '',          '',          '',               '',              '',         '**Meta**',  '',             '**Trading**', '**PCGW**']
-	table[1] = [':-',        '-:',        '-:',        '-:',             '-:',            '-:',       '-:',        ':-:',          ':-:',         ':-:']
-	table[2] = ['**Title**', '**Disc.**', '**$USD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**$AUD**', '**score**', '**Platform**', '**Cards**',   '**Article**']
+	table = [['' for x in xrange(11)] for x in xrange(len(appids)+2)]
+	table[0] = ['**Title**', '**Disc.**', '**$USD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**AU ($USD)**', '**BRL$**', '**score**', '**Platform**', '**Cards**',   '**PCGW**']
+	table[1] = [':-',        '-:',        '-:',        '-:',             '-:',            '-:',            '-:',       '-:',        ':-:',          ':-:',         ':-:']
 	
 	appids_list = ','.join(map(str, appids))
 	
@@ -103,7 +104,7 @@ def get_table(appids): # get a table with the appIDs or subIDs
 			if(data_orig[str(appid)]['success'] == False):
 				(table, sub_appid) = sub_get_info(table, idx1, country, idx2, appid)
 				
-				# if the sub isn't invalid, get info from the main app in the sub
+				# if the sub isn't invalid, get info from the first app in the sub (usually main)
 				if(not is_invalid[idx2]):
 					appid = sub_appid
 					
@@ -118,9 +119,9 @@ def get_table(appids): # get a table with the appIDs or subIDs
 			if(idx1 == 0 and not is_invalid[idx2]):
 				if('metacritic' in data):
 					metacritic = data['metacritic']
-					table[3 + idx2][6] = '[' + str(metacritic['score']) + '](' + metacritic['url'] + ')'
+					table[2 + idx2][7] = '[' + str(metacritic['score']) + '](' + metacritic['url'] + ')'
 				else:
-					table[3 + idx2][6] = 'N/A'
+					table[2 + idx2][7] = 'N/A'
 				
 				if('platforms' in data):
 					platforms = data['platforms']
@@ -128,23 +129,23 @@ def get_table(appids): # get a table with the appIDs or subIDs
 					for key, value in platforms.iteritems():
 						if value:
 							pl.append(key.capitalize())
-					table[3 + idx2][7] = '/'.join(map(str, pl))
+					table[2 + idx2][8] = '/'.join(map(str, pl))
 				
 				if('categories' in data):
 					cards = data['categories']
 					if(cardcheck in cards):
-						table[3 + idx2][8] = 'Yes'
+						table[2 + idx2][9] = 'Yes'
 					else:
-						table[3 + idx2][8] = 'No'
+						table[2 + idx2][9] = 'No'
 				
 				# PCGW Article
 				pcgw_response = urllib2.urlopen('http://pcgamingwiki.com/wiki/Special:Ask/-5B-5BSteam-20AppID::' + str(appid) + '-5D-5D/format%3Djson')
 				try:
 					pcgw_data = json.load(pcgw_response)
 					if('fullurl' in pcgw_data.get('results', {}).itervalues().next()):
-						table[3 + idx2][9] = '[Yes](' + pcgw_data['results'].itervalues().next()['fullurl'].replace('(', '\(').replace(')', '\)') + ')'
+						table[2 + idx2][10] = '[Yes](' + pcgw_data['results'].itervalues().next()['fullurl'].replace('(', '\(').replace(')', '\)') + ')'
 				except ValueError:
-					table[3 + idx2][9] = 'No'
+					table[2 + idx2][10] = 'No'
 	return table
 
 table = get_table(appids)

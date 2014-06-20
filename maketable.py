@@ -26,10 +26,18 @@ appids = sys.argv[2:]
 is_invalid = [False for x in xrange(len(appids))]
 
 def sub_get_info(table, idx1, country, idx2, subid):
+	is_invalid[idx2] = False
 	response = urllib2.urlopen('http://store.steampowered.com/api/packagedetails?packageids=' + str(subid) + '&cc='+country)
 	data_orig = json.load(response)
 	if(data_orig[str(subid)]['success'] == False):
-		print 'Invalid ID: ' + str(subid) + ', skipping...'
+		print 'ID ' + str(subid) + ' invalid for region \'' + cc[idx1] + '\', skipping...'
+		if(idx1 < 2):
+			table[2 + idx2][2 + idx1] = 'N/A'
+		elif(idx1 == 2):
+			if('N/A' != table[2 + idx2][3]):
+				table[2 + idx2][3] = table[2 + idx2][3] + "/" + 'N/A'
+		elif(idx1 > 2):
+			table[2 + idx2][2 + (idx1 - 1)] = 'N/A'
 		is_invalid[idx2] = True
 		return (table, subid)
 	
@@ -83,8 +91,8 @@ def app_get_info(table, idx1, country, idx2, appid, data):
 def get_table(appids): # get a table with the appIDs or subIDs
 	# initialize the table
 	table = [['' for x in xrange(11)] for x in xrange(len(appids)+2)]
-	table[0] = ['**Title**', '**Disc.**', '**$USD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**AU ($USD)**', '**BRL$**', '**score**', '**Platform**', '**Cards**',   '**PCGW**']
-	table[1] = [':-',        '-:',        '-:',        '-:',             '-:',            '-:',            '-:',       '-:',        ':-:',          ':-:',         ':-:']
+	table[0] = ['**Title**', '**Disc.**', '**$USD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**AU ($USD)**', '**BRL$**', '**Metascore**', '**Platform**', '**Cards**',   '**PCGW**']
+	table[1] = [':-',        '-:',        '-:',        '-:',             '-:',            '-:',            '-:',       '-:',            ':-:',          ':-:',         ':-:']
 	
 	appids_list = ','.join(map(str, appids))
 	
@@ -95,8 +103,6 @@ def get_table(appids): # get a table with the appIDs or subIDs
 
 		for idx2, appid in enumerate(appids):
 			# skip processing if already known to be invalid
-			if(is_invalid[idx2]):
-				continue
 			
 			sub_appid = None
 			
@@ -152,7 +158,7 @@ table = get_table(appids)
 # print the table
 for idx, line in enumerate(table):
 	# skip line if invalid
-	if(idx >= 3 and is_invalid[idx - 3]):
+	if(idx >= 2 and is_invalid[idx - 2]):
 		continue
 	l = "|" + u"|".join(line).encode('utf-8').strip() + "|"
 	with open(filename, "a") as myfile:

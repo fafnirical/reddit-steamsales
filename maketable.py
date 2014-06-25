@@ -22,15 +22,16 @@ with open(filename, "w") as myfile:
 
 appids = sys.argv[2:]
 
-# initially, everything is valid
-is_invalid = [False for x in xrange(len(appids))]
+# initially, everything is considered invalid
+is_valid = [False for x in xrange(len(appids))]
 
 def sub_get_info(table, idx1, country, idx2, subid):
-	is_invalid[idx2] = False
+	sub_appid = subid
 	response = urllib2.urlopen('http://store.steampowered.com/api/packagedetails?packageids=' + str(subid) + '&cc='+country)
 	data_orig = json.load(response)
+	
 	if(data_orig[str(subid)]['success'] == False):
-		print 'ID ' + str(subid) + ' invalid for region \'' + cc[idx1] + '\', skipping...'
+		print 'ID ' + str(subid) + ' invalid for region \'' + cc[idx1] + '\', marking as \'N/A\'...'
 		if(idx1 < 2):
 			table[2 + idx2][2 + idx1] = 'N/A'
 		elif(idx1 == 2):
@@ -38,20 +39,19 @@ def sub_get_info(table, idx1, country, idx2, subid):
 				table[2 + idx2][3] = table[2 + idx2][3] + "/" + 'N/A'
 		elif(idx1 > 2):
 			table[2 + idx2][2 + (idx1 - 1)] = 'N/A'
-		is_invalid[idx2] = True
-		return (table, subid)
+		return (table, sub_appid)
 	
 	data = data_orig[str(subid)]['data']
-	sub_appid = subid
-	if(idx1 == 0):
-		if('name' in data):
+	if('name' in data):
+		if(is_valid[idx1] == False):
+			is_valid[idx1] = 'True'
+		if(table[2 + idx2][0] == ''):
 			table[2 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/sub/' + str(subid) + '/)'
-		if('price' in data):
-			pricedata = data['price']
-			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 	
 	if('price' in data):
 		pricedata = data['price']
+		if(table[2 + idx2][1] == ''):
+			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 		if(idx1 < 2):
 			table[2 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
 		elif(idx1 == 2):
@@ -67,15 +67,16 @@ def sub_get_info(table, idx1, country, idx2, subid):
 	return (table, sub_appid)
 
 def app_get_info(table, idx1, country, idx2, appid, data):
-	if(idx1 == 0):
-		if('name' in data):
+	if('name' in data):
+		if(is_valid[idx2] == False):
+			is_valid[idx2] = 'True'
+		if(table[2 + idx2][0] == ''):
 			table[2 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/app/' + str(appid) + '/)'
-		if('price_overview' in data):
-			pricedata = data['price_overview']
-			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 	
 	if('price_overview' in data):
 		pricedata = data['price_overview']
+		if(table[2 + idx2][1] == ''):
+			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 		if(idx1 < 2):
 			table[2 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
 		# combine EU Tiers 1 and 2 into one cell
@@ -91,8 +92,8 @@ def app_get_info(table, idx1, country, idx2, appid, data):
 def get_table(appids): # get a table with the appIDs or subIDs
 	# initialize the table
 	table = [['' for x in xrange(11)] for x in xrange(len(appids)+2)]
-	table[0] = ['**Title**', '**Disc.**', '**$USD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**AU ($USD)**', '**BRL$**', '**Metascore**', '**Platform**', '**Cards**',   '**PCGW**']
-	table[1] = [':-',        '-:',        '-:',        '-:',             '-:',            '-:',            '-:',       '-:',            ':-:',          ':-:',         ':-:']
+	table[0] = ['**Title**', '**Disc.**', '**$USD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**AU**', '**BRL$**', '**Metascore**', '**Platform**', '**Cards**',   '**PCGW**']
+	table[1] = [':-',        '-:',        '-:',        '-:',             '-:',            '-:',     '-:',       '-:',            ':-:',          ':-:',         ':-:']
 	
 	appids_list = ','.join(map(str, appids))
 	
@@ -109,20 +110,20 @@ def get_table(appids): # get a table with the appIDs or subIDs
 			# if it's not an app, try it as a sub
 			if(data_orig[str(appid)]['success'] == False):
 				(table, sub_appid) = sub_get_info(table, idx1, country, idx2, appid)
+				appid = sub_appid
 				
-				# if the sub isn't invalid, get info from the first app in the sub (usually main)
-				if(not is_invalid[idx2]):
-					appid = sub_appid
-					
-					response = urllib2.urlopen('http://store.steampowered.com/api/appdetails?appids=' + str(appid) + '&cc='+country)
-					data_orig_new = json.load(response)
-					
+				response = urllib2.urlopen('http://store.steampowered.com/api/appdetails?appids=' + str(appid) + '&cc='+country)
+				data_orig_new = json.load(response)
+				
+				if(data_orig_new[str(appid)]['success'] == True):
 					data = data_orig_new[str(appid)]['data']
+				else:
+					data = {}
 			else:
 				data = data_orig[str(appid)]['data']
 				table = app_get_info(table, idx1, country, idx2, appid, data)
 			
-			if(idx1 == 0 and not is_invalid[idx2]):
+			if(idx1 == 0):
 				if('metacritic' in data):
 					metacritic = data['metacritic']
 					table[2 + idx2][7] = '[' + str(metacritic['score']) + '](' + metacritic['url'] + ')'
@@ -132,9 +133,12 @@ def get_table(appids): # get a table with the appIDs or subIDs
 				if('platforms' in data):
 					platforms = data['platforms']
 					pl = []
-					for key, value in platforms.iteritems():
-						if value:
-							pl.append(key.capitalize())
+					if (platforms['windows'] == True):
+						pl.append('Win')
+					if (platforms['mac'] == True):
+						pl.append('OS X')
+					if (platforms['linux'] == True):
+						pl.append('Linux')
 					table[2 + idx2][8] = '/'.join(map(str, pl))
 				
 				if('categories' in data):
@@ -158,7 +162,7 @@ table = get_table(appids)
 # print the table
 for idx, line in enumerate(table):
 	# skip line if invalid
-	if(idx >= 2 and is_invalid[idx - 2]):
+	if(idx >= 2 and not is_valid[idx - 2]):
 		continue
 	l = "|" + u"|".join(line).encode('utf-8').strip() + "|"
 	with open(filename, "a") as myfile:

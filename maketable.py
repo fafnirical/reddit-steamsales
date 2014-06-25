@@ -133,12 +133,9 @@ def get_table(appids): # get a table with the appIDs or subIDs
 				if('platforms' in data):
 					platforms = data['platforms']
 					pl = []
-					if (platforms['windows'] == True):
-						pl.append('Win')
-					if (platforms['mac'] == True):
-						pl.append('OS X')
-					if (platforms['linux'] == True):
-						pl.append('Linux')
+					for key, value in platforms.iteritems():
+						if value:
+							pl.append(key.capitalize())
 					table[2 + idx2][8] = '/'.join(map(str, pl))
 				
 				if('categories' in data):

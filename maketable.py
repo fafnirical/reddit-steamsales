@@ -43,8 +43,8 @@ def sub_get_info(table, idx1, country, idx2, subid):
 	
 	data = data_orig[str(subid)]['data']
 	if('name' in data):
-		if(is_valid[idx1] == False):
-			is_valid[idx1] = 'True'
+		if(is_valid[idx2] == False):
+			is_valid[idx2] = 'True'
 		if(table[2 + idx2][0] == ''):
 			table[2 + idx2][0] = '[' + data['name'] + '](http://store.steampowered.com/sub/' + str(subid) + '/)'
 	

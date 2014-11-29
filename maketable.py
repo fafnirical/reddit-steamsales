@@ -92,7 +92,7 @@ def get_table(appids):
 					pl = []
 					for key, value in platforms.iteritems():
 						if value:
-							pl.append(key.capitalize())
+							pl.append(key.capitalize()[0])
 					table[2 + idx2][9] = '/'.join(map(str, pl))
 
 				if ('categories' in data):

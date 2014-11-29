@@ -3,15 +3,6 @@ import urllib2, json
 
 #Constants
 cc = ['us', 'ca', 'fr', 'it', 'uk', 'au', 'br'] #Countries to check.  Each one requires an extra lookup.
-currency = {
-	'us': '$',
-	'ca': 'C$',
-	'fr': u"\u20ac",
-	'it': u"\u20ac",
-	'uk': u"\u00A3",
-	'au': '$',
-	'br': 'R$'
-}
 cardcheck = {
 	'id': '29',
 	'description':'Steam Trading Cards'
@@ -51,8 +42,8 @@ def main():
 def get_table(appids):
 	#Initialize the table
 	table = [['' for x in xrange(12)] for x in xrange(len(appids)+2)]
-	table[0] = ['**Title**', '**Disc.**', '**$USD**', '**$CAD**', u'**EUR\u20ac**', u'**\u00a3GBP**', '**AU**', '**BRL$**', '**Metascore**', '**Platform**', '**Cards**',   '**PCGW**']
-	table[1] = [':-',        '-:',        '-:',       '-:',        '-:',             '-:',            '-:',     '-:',       '-:',            ':-:',          ':-:',         ':-:']
+	table[0] = ['**Title**', '**Disc.**', '**$USD**', '**$CAD**', u'**\u20acEUR**', u'**\u00a3GBP**', '**AU ($USD)**', '**BRL$**', '**Metascore**', '**Platform**', '**Cards**',   '**PCGW**']
+	table[1] = [':-',        '-:',        '-:',       '-:',        '-:',             '-:',            '-:',            '-:',       '-:',            ':-:',          ':-:',         ':-:']
 
 	#Loop through countries
 	for idx1, country in enumerate(cc):
@@ -133,14 +124,14 @@ def app_get_info(table, idx1, country, idx2, appid, data):
 		if (table[2 + idx2][1] == ''):
 			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 		if (idx1 < 3):
-			table[2 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + idx1] = str(float(pricedata['final']) / 100)
 		#Combine EU Tiers 1 and 2 into one cell
 		elif (idx1 == 3):
 			#If the prices in EU Tiers 1 and 2 aren't the same, show Tier 2's price
-			if ((currency[country] + str(float(pricedata['final']) / 100)) != table[2 + idx2][4]):
-				table[2 + idx2][4] = table[2 + idx2][4] + "/" + currency[country] + str(float(pricedata['final']) / 100)
+			if ((str(float(pricedata['final']) / 100)) != table[2 + idx2][4]):
+				table[2 + idx2][4] = table[2 + idx2][4] + "/" + str(float(pricedata['final']) / 100)
 		elif (idx1 > 3):
-			table[2 + idx2][2 + (idx1 - 1)] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + (idx1 - 1)] = str(float(pricedata['final']) / 100)
 
 	return table
 
@@ -172,12 +163,12 @@ def sub_get_info(table, idx1, country, idx2, subid):
 		if (table[2 + idx2][1] == ''):
 			table[2 + idx2][1] = str(pricedata['discount_percent']) + '%'
 		if (idx1 < 2):
-			table[2 + idx2][2 + idx1] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + idx1] = str(float(pricedata['final']) / 100)
 		elif (idx1 == 2):
-			if ((currency[country] + str(float(pricedata['final']) / 100)) != table[2 + idx2][3]):
-				table[2 + idx2][3] = table[2 + idx2][3] + "/" + currency[country] + str(float(pricedata['final']) / 100)
+			if ((str(float(pricedata['final']) / 100)) != table[2 + idx2][3]):
+				table[2 + idx2][3] = table[2 + idx2][3] + "/" + str(float(pricedata['final']) / 100)
 		elif (idx1 > 2):
-			table[2 + idx2][2 + (idx1 - 1)] = currency[country] + str(float(pricedata['final']) / 100)
+			table[2 + idx2][2 + (idx1 - 1)] = str(float(pricedata['final']) / 100)
 
 	#Set the appid to the first app in the sub (usually the primary app)
 	if ('apps' in data):

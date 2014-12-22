@@ -42,8 +42,8 @@ def main():
 def get_table(appids):
 	#Initialize the table
 	table = [['' for x in xrange(12)] for x in xrange(len(appids)+2)]
-	table[0] = ['**Title**', '**Disc.**', '**$USD**', '**$CAD**', u'**\u20acEUR**', u'**\u00a3GBP**', '**AU ($USD)**', '**BRL$**', '**Metascore**', '**Platform**', '**Cards**',   '**PCGW**']
-	table[1] = [':-',        '-:',        '-:',       '-:',        '-:',             '-:',            '-:',            '-:',       '-:',            ':-:',          ':-:',         ':-:']
+	table[0] = ['Title', 'Disc.', '$USD', '$CAD', u'\u20acEUR', u'\u00a3GBP', 'AU ($USD)', 'BRL$', 'Metascore', 'Platform', 'Cards',   'PCGW']
+	table[1] = [':-',    '-:',    '-:',   '-:',    '-:',         '-:',        '-:',        '-:',   '-:',        ':-:',      ':-:',     ':-:']
 
 	#Loop through countries
 	for idx1, country in enumerate(cc):
